@@ -1,0 +1,409 @@
+{% comment %}
+  Custom Made-to-Measure Curtain Configurator Section
+  - Driven by Product Metafield (Metaobject list: Curtain Pricing Tier)
+  - Vanilla ES6+ Custom Element architecture
+  - Real-time zero-CLS price and panel calculation
+  - Direct Shopify Ajax Cart API integration with line item properties
+{% endcomment %}
+
+{{ 'section-main-product.css' | asset_url | stylesheet_tag }}
+
+{%- liquid
+  assign tiers_metafield = product.metafields.custom.curtain_pricing_tiers.value
+  assign default_variant = product.selected_or_first_available_variant
+-%}
+
+<div class="page-width section-{{ section.id }}-padding">
+  <div class="curtain-configurator-grid">
+    {% comment %} Left Column: Product Gallery / Image {% endcomment %}
+    <div class="curtain-configurator__media">
+      {%- if product.featured_image -%}
+        <img
+          id="CurtainFeaturedImage-{{ section.id }}"
+          src="{{ product.featured_image | image_url: width: 800 }}"
+          alt="{{ product.title | escape }}"
+          width="800"
+          height="{{ 800 | divided_by: product.featured_image.aspect_ratio | round }}"
+          loading="lazy"
+        >
+      {%- else -%}
+        {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+      {%- endif -%}
+    </div>
+
+    {% comment %} Right Column: Configurator & Form {% endcomment %}
+    <div class="curtain-configurator__details">
+      <h1 class="product__title">{{ product.title }}</h1>
+
+      <div class="price-container" style="min-height: 2.5rem;">
+        <span class="price-item price-item--regular" id="CurtainDisplayPrice-{{ section.id }}">
+          {{ default_variant.price | money }}
+        </span>
+      </div>
+
+      <curtain-configurator
+        id="CurtainConfigurator-{{ section.id }}"
+        data-section-id="{{ section.id }}"
+        data-currency-symbol="{{ cart.currency.symbol }}"
+        data-base-variant-id="{{ default_variant.id }}"
+      >
+        <form id="CurtainForm-{{ section.id }}" class="curtain-form" novalidate>
+          <input type="hidden" name="id" value="{{ default_variant.id }}">
+
+          {% comment %} Fabric Swatches configured via Liquid Blocks {% endcomment %}
+          <div class="configurator-field fabric-selection">
+            <label class="form__label"><strong>Select Fabric:</strong></label>
+            <div class="fabric-swatches">
+              {%- for block in section.blocks -%}
+                {%- if block.type == 'fabric_swatch' -%}
+                  <label class="swatch-label">
+                    <input
+                      type="radio"
+                      name="properties[Fabric]"
+                      value="{{ block.settings.fabric_name | escape }}"
+                      {% if forloop.first %}checked{% endif %}
+                      class="visually-hidden swatch-radio"
+                      data-image-url="{{ block.settings.swatch_image | image_url: width: 800 }}"
+                    >
+                    <span
+                      class="swatch-visual"
+                      style="background-color: {{ block.settings.fabric_color }};"
+                      title="{{ block.settings.fabric_name | escape }}"
+                    ></span>
+                    <span class="swatch-title">{{ block.settings.fabric_name }}</span>
+                  </label>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+
+          {% comment %} Width Dimension Input {% endcomment %}
+          <div class="configurator-field">
+            <label class="form__label" for="CurtainWidth-{{ section.id }}">
+              <strong>Width (cm):</strong>
+              <span class="field-hint">(Allowed range: 50cm to 360cm)</span>
+            </label>
+            <input
+              type="number"
+              id="CurtainWidth-{{ section.id }}"
+              name="properties[Width]"
+              min="50"
+              max="360"
+              value="100"
+              required
+              class="field__input dimension-input"
+            >
+            <span class="field-error-msg" id="WidthError-{{ section.id }}" style="display: none; color: #d02e2e; font-size: 0.85rem;">
+              Please enter a valid width between 50cm and 360cm.
+            </span>
+          </div>
+
+          {% comment %} Drop Interval Selector {% endcomment %}
+          <div class="configurator-field">
+            <label class="form__label" for="CurtainDrop-{{ section.id }}">
+              <strong>Drop (cm):</strong>
+            </label>
+            <div class="select">
+              <select
+                id="CurtainDrop-{{ section.id }}"
+                name="properties[Drop]"
+                class="select__select dimension-select"
+              >
+                <option value="150" data-tier-multiplier="1">150 cm</option>
+                <option value="200" data-tier-multiplier="2" selected>200 cm</option>
+                <option value="250" data-tier-multiplier="3">250 cm</option>
+              </select>
+            </div>
+          </div>
+
+          {% comment %} Production Panel Readout (Customer guidance) {% endcomment %}
+          <div class="panel-calculation-status" style="margin: 1.2rem 0; font-size: 0.95rem; color: #555;">
+            Estimated Fabric Panels: <strong id="CalculatedPanels-{{ section.id }}">1</strong>
+          </div>
+
+          {% comment %} Internal manufacturing property: leading underscore keeps it hidden on storefront order displays {% endcomment %}
+          <input
+            type="hidden"
+            id="HiddenFabricPanels-{{ section.id }}"
+            name="properties[_fabric_panels]"
+            value="1"
+          >
+
+          {% comment %} Real-time Add to Cart Button {% endcomment %}
+          <div class="product-form__buttons" style="min-height: 48px;">
+            <button
+              type="submit"
+              name="add"
+              id="AddToCartBtn-{{ section.id }}"
+              class="product-form__submit button button--full-width button--primary"
+            >
+              <span>Add to Cart</span>
+            </button>
+          </div>
+        </form>
+
+        {% comment %} JSON Matrix from Metaobjects {% endcomment %}
+        <script type="application/json" id="PricingMatrix-{{ section.id }}">
+          [
+            {%- for tier in tiers_metafield -%}
+              {
+                "min_width": {{ tier.min_width.value | default: 0 }},
+                "max_width": {{ tier.max_width.value | default: 0 }},
+                "panels_required": {{ tier.panels_required.value | default: 1 }},
+                "base_price": {{ tier.base_price.value.amount | default: 0 }},
+                "price_per_drop_tier": {{ tier.price_per_drop_tier.value.amount | default: 0 }}
+              }{%- unless forloop.last -%},{%- endunless -%}
+            {%- endfor -%}
+          ]
+        </script>
+      </curtain-configurator>
+    </div>
+  </div>
+</div>
+
+<style>
+  .curtain-configurator-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  @media screen and (min-width: 750px) {
+    .curtain-configurator-grid {
+      grid-template-columns: 1.1fr 0.9fr;
+    }
+  }
+  .curtain-configurator__media img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    object-fit: cover;
+  }
+  .configurator-field {
+    margin-bottom: 1.5rem;
+  }
+  .fabric-swatches {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .swatch-label {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .swatch-visual {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    display: inline-block;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .swatch-radio:checked + .swatch-visual {
+    border-color: #000;
+    transform: scale(1.1);
+  }
+  .swatch-title {
+    font-size: 0.8rem;
+  }
+  .field-hint {
+    font-size: 0.8rem;
+    color: #666;
+    margin-left: 0.5rem;
+  }
+  .price-container {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+</style>
+
+<script>
+  if (!customElements.get('curtain-configurator')) {
+    customElements.define('curtain-configurator', class CurtainConfigurator extends HTMLElement {
+      constructor() {
+        super();
+        this.sectionId = this.dataset.sectionId;
+        this.currencySymbol = this.dataset.currencySymbol || '$';
+
+        this.widthInput = this.querySelector(`#CurtainWidth-${this.sectionId}`);
+        this.dropSelect = this.querySelector(`#CurtainDrop-${this.sectionId}`);
+        this.priceDisplay = document.querySelector(`#CurtainDisplayPrice-${this.sectionId}`);
+        this.panelsDisplay = this.querySelector(`#CalculatedPanels-${this.sectionId}`);
+        this.hiddenPanelsInput = this.querySelector(`#HiddenFabricPanels-${this.sectionId}`);
+        this.submitButton = this.querySelector(`#AddToCartBtn-${this.sectionId}`);
+        this.errorMessage = this.querySelector(`#WidthError-${this.sectionId}`);
+        this.form = this.querySelector(`#CurtainForm-${this.sectionId}`);
+        this.featuredImage = document.querySelector(`#CurtainFeaturedImage-${this.sectionId}`);
+
+        const matrixEl = this.querySelector(`#PricingMatrix-${this.sectionId}`);
+        this.pricingTiers = matrixEl ? JSON.parse(matrixEl.textContent) : [];
+
+        this.init();
+      }
+
+      init() {
+        this.widthInput?.addEventListener('input', () => this.recalculate());
+        this.dropSelect?.addEventListener('change', () => this.recalculate());
+        this.form?.addEventListener('submit', (e) => this.handleAddToCart(e));
+
+        this.querySelectorAll('.swatch-radio').forEach((radio) => {
+          radio.addEventListener('change', (e) => {
+            const newImage = e.target.dataset.imageUrl;
+            if (newImage && this.featuredImage) {
+              this.featuredImage.src = newImage;
+            }
+          });
+        });
+
+        this.recalculate();
+      }
+
+      getMatchedTier(width) {
+        return this.pricingTiers.find((tier) => width >= tier.min_width && width <= tier.max_width);
+      }
+
+      recalculate() {
+        const width = parseFloat(this.widthInput.value);
+        const dropMultiplier = parseInt(this.dropSelect.selectedOptions[0].dataset.tierMultiplier, 10) || 1;
+
+        if (isNaN(width) || width < 50 || width > 360) {
+          this.submitButton.disabled = true;
+          this.errorMessage.style.display = 'block';
+          return;
+        }
+
+        this.errorMessage.style.display = 'none';
+        const matchedTier = this.getMatchedTier(width);
+
+        if (!matchedTier) {
+          this.submitButton.disabled = true;
+          return;
+        }
+
+        const calculatedPrice = matchedTier.base_price + (matchedTier.price_per_drop_tier * dropMultiplier);
+
+        this.submitButton.disabled = false;
+        this.panelsDisplay.textContent = matchedTier.panels_required;
+        this.hiddenPanelsInput.value = matchedTier.panels_required;
+
+        const formattedPrice = `${this.currencySymbol}${calculatedPrice.toFixed(2)}`;
+        this.priceDisplay.textContent = formattedPrice;
+        this.submitButton.querySelector('span').textContent = `Add to Cart • ${formattedPrice}`;
+      }
+
+      async handleAddToCart(event) {
+        event.preventDefault();
+
+        const width = parseFloat(this.widthInput.value);
+        if (isNaN(width) || width < 50 || width > 360) {
+          this.errorMessage.style.display = 'block';
+          return;
+        }
+
+        this.submitButton.disabled = true;
+        this.submitButton.querySelector('span').textContent = 'Adding...';
+
+        const formData = new FormData(this.form);
+
+        try {
+          const response = await fetch(`${routes?.cart_add_url || '/cart/add.js'}`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+
+          if (!response.ok) throw new Error('Network error adding to cart');
+
+          // Trigger Dawn's cart drawer refresh via Section Rendering
+          const cartDrawer = document.querySelector('cart-drawer');
+          if (cartDrawer) {
+            const drawerRes = await fetch(`${routes?.cart_url || '/cart'}?section_id=cart-drawer`);
+            const html = await drawerRes.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContent = doc.querySelector('#CartDrawer');
+            if (newContent) {
+              cartDrawer.querySelector('#CartDrawer').innerHTML = newContent.innerHTML;
+            }
+            cartDrawer.open();
+          } else {
+            window.location.href = '/cart';
+          }
+        } catch (error) {
+          console.error(error);
+          alert('Could not add item to cart. Please verify selections.');
+        } finally {
+          this.recalculate();
+        }
+      }
+    });
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Curtain Configurator",
+  "tag": "section",
+  "class": "section",
+  "settings": [],
+  "blocks": [
+    {
+      "type": "fabric_swatch",
+      "name": "Fabric Swatch",
+      "settings": [
+        {
+          "type": "text",
+          "id": "fabric_name",
+          "label": "Fabric Name",
+          "default": "Linen White"
+        },
+        {
+          "type": "color",
+          "id": "fabric_color",
+          "label": "Color Code",
+          "default": "#F4F1EA"
+        },
+        {
+          "type": "image_picker",
+          "id": "swatch_image",
+          "label": "Fabric Preview Image"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Curtain Configurator",
+      "blocks": [
+        {
+          "type": "fabric_swatch",
+          "settings": {
+            "fabric_name": "Linen White",
+            "fabric_color": "#F4F1EA"
+          }
+        },
+        {
+          "type": "fabric_swatch",
+          "settings": {
+            "fabric_name": "Charcoal Grey",
+            "fabric_color": "#333333"
+          }
+        },
+        {
+          "type": "fabric_swatch",
+          "settings": {
+            "fabric_name": "Velvet Navy",
+            "fabric_color": "#1B2A4A"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
