@@ -1,9 +1,6 @@
 {% comment %}
   Premium Made-to-Measure Curtain Configurator
-  - Fully Block-Based Architecture
-  - No Hardcoded Text (All customizable in schema)
-  - Mobile & Desktop Optimized (Modern UI/UX)
-  - Dynamic Drop Multipliers & Metaobject Integration
+  - Dynamic Add-on Pricing (1 Rupee Trick)
 {% endcomment %}
 
 {{ 'section-main-product.css' | asset_url | stylesheet_tag }}
@@ -11,12 +8,12 @@
 {%- liquid
   assign tiers_metafield = product.metafields.custom.curtain_pricing_tiers.value
   assign default_variant = product.selected_or_first_available_variant
+  assign addon_variant = section.settings.addon_product.selected_or_first_available_variant
 -%}
 
 <div class="page-width section-{{ section.id }}-padding">
   <div class="premium-curtain-grid">
     
-    {% comment %} Left Column: Sticky Product Image {% endcomment %}
     <div class="premium-curtain-media">
       <div class="media-sticky-wrapper">
         {%- if product.featured_image -%}
@@ -35,17 +32,16 @@
       </div>
     </div>
 
-    {% comment %} Right Column: Dynamic Block-Based Form {% endcomment %}
     <div class="premium-curtain-content">
       <curtain-configurator
         id="CurtainConfigurator-{{ section.id }}"
         data-section-id="{{ section.id }}"
         data-currency-symbol="{{ cart.currency.symbol }}"
         data-base-variant-id="{{ default_variant.id }}"
+        data-addon-variant-id="{{ addon_variant.id }}"
       >
         <form id="CurtainForm-{{ section.id }}" class="curtain-premium-form" novalidate>
-          <input type="hidden" name="id" value="{{ default_variant.id }}">
-
+          
           {%- for block in section.blocks -%}
             {%- case block.type -%}
 
@@ -56,8 +52,8 @@
 
               {%- when 'price' -%}
                 <div class="premium-price-wrapper" {{ block.shopify_attributes }}>
-                  <span class="price-item price-item--regular js-price-display" id="CurtainDisplayPrice-{{ section.id }}">
-                    {{ default_variant.price | money }}
+                  <span class="price-item price-item--regular js-price-display">
+                    Rs 0.00
                   </span>
                 </div>
 
@@ -76,7 +72,7 @@
                             class="visually-hidden js-swatch-radio"
                             data-image-url="{{ swatch_block.settings.swatch_image | image_url: width: 1000 }}"
                           >
-                          <span class="swatch-color-circle" style="background-color: {{ swatch_block.settings.fabric_color }};" title="{{ swatch_block.settings.fabric_name | escape }}"></span>
+                          <span class="swatch-color-circle" style="background-color: {{ swatch_block.settings.fabric_color }};"></span>
                           <span class="swatch-name">{{ swatch_block.settings.fabric_name }}</span>
                         </label>
                       {%- endif -%}
@@ -86,14 +82,13 @@
 
               {%- when 'width_input' -%}
                 <div class="premium-field-group" {{ block.shopify_attributes }}>
-                  <label class="premium-label" for="CurtainWidth-{{ section.id }}">
+                  <label class="premium-label">
                     {{ block.settings.label }}
                     <span class="premium-hint">{{ block.settings.hint_text }}</span>
                   </label>
                   <div class="premium-input-wrapper">
                     <input
                       type="number"
-                      id="CurtainWidth-{{ section.id }}"
                       name="properties[Width]"
                       min="{{ block.settings.min_width }}"
                       max="{{ block.settings.max_width }}"
@@ -110,15 +105,9 @@
 
               {%- when 'drop_input' -%}
                 <div class="premium-field-group" {{ block.shopify_attributes }}>
-                  <label class="premium-label" for="CurtainDrop-{{ section.id }}">
-                    {{ block.settings.label }}
-                  </label>
+                  <label class="premium-label">{{ block.settings.label }}</label>
                   <div class="premium-select-wrapper">
-                    <select
-                      id="CurtainDrop-{{ section.id }}"
-                      name="properties[Drop]"
-                      class="premium-select js-drop-select"
-                    >
+                    <select name="properties[Drop]" class="premium-select js-drop-select">
                       {%- assign drop_options = block.settings.options | split: ',' -%}
                       {%- for option in drop_options -%}
                         <option value="{{ option | strip }}" data-tier-multiplier="{{ forloop.index }}" {% if forloop.index == 2 %}selected{% endif %}>
@@ -132,7 +121,6 @@
               {%- when 'panel_readout' -%}
                 <div class="premium-panel-status" {{ block.shopify_attributes }}>
                   <div class="status-box">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     <span>{{ block.settings.label }} <strong class="js-panels-display">1</strong></span>
                   </div>
                 </div>
@@ -140,11 +128,7 @@
               {%- when 'buy_buttons' -%}
                 <div class="premium-buy-buttons" {{ block.shopify_attributes }}>
                   <input type="hidden" class="js-hidden-panels" name="properties[_fabric_panels]" value="1">
-                  <button
-                    type="submit"
-                    name="add"
-                    class="premium-submit-btn js-submit-btn"
-                  >
+                  <button type="submit" name="add" class="premium-submit-btn js-submit-btn">
                     <span>{{ block.settings.button_text }}</span>
                   </button>
                 </div>
@@ -153,7 +137,6 @@
           {%- endfor -%}
         </form>
 
-        {% comment %} JSON Matrix from Metaobjects {% endcomment %}
         <script type="application/json" id="PricingMatrix-{{ section.id }}">
           [
             {%- for tier in tiers_metafield -%}
@@ -173,181 +156,34 @@
 </div>
 
 <style>
-  /* Premium UI CSS - Fully Responsive */
-  .premium-curtain-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-    align-items: start;
-  }
+  .premium-curtain-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; align-items: start; }
   @media screen and (min-width: 900px) {
-    .premium-curtain-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: 4rem;
-    }
-    .media-sticky-wrapper {
-      position: sticky;
-      top: 3rem;
-    }
+    .premium-curtain-grid { grid-template-columns: 1fr 1fr; gap: 4rem; }
+    .media-sticky-wrapper { position: sticky; top: 3rem; }
   }
-  
-  .curtain-main-image {
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-    object-fit: cover;
-    transition: opacity 0.3s ease;
-  }
-
-  .premium-title {
-    font-size: clamp(2rem, 4vw, 3rem);
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-  }
-
-  .premium-price-wrapper {
-    font-size: 1.8rem;
-    font-weight: 500;
-    color: #111;
-    margin-bottom: 2rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 1px solid #eaeaea;
-  }
-
-  .premium-field-group {
-    margin-bottom: 1.8rem;
-  }
-
-  .premium-label {
-    display: block;
-    font-size: 0.95rem;
-    font-weight: 600;
-    margin-bottom: 0.8rem;
-    color: #333;
-  }
-
-  .premium-hint {
-    font-size: 0.8rem;
-    color: #777;
-    font-weight: 400;
-    margin-left: 0.5rem;
-  }
-
-  /* Swatches */
-  .premium-swatch-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-  .premium-swatch-item {
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  .swatch-color-circle {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transition: all 0.2s ease;
-    position: relative;
-  }
-  .js-swatch-radio:checked + .swatch-color-circle {
-    border-color: #000;
-    transform: scale(1.1);
-  }
-  .js-swatch-radio:checked + .swatch-color-circle::after {
-    content: '';
-    position: absolute;
-    inset: 2px;
-    border: 2px solid #fff;
-    border-radius: 50%;
-  }
-  .swatch-name {
-    font-size: 0.85rem;
-    color: #555;
-    font-weight: 500;
-  }
-
-  /* Inputs & Selects */
-  .premium-input-wrapper, .premium-select-wrapper {
-    position: relative;
-  }
-  .premium-input, .premium-select {
-    width: 100%;
-    padding: 14px 16px;
-    font-size: 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    background-color: #fafafa;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
-  }
-  .premium-input:focus, .premium-select:focus {
-    outline: none;
-    border-color: #000;
-    background-color: #fff;
-    box-shadow: 0 0 0 1px #000;
-  }
-  .input-suffix {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #888;
-    pointer-events: none;
-  }
-
-  .premium-error {
-    color: #dc2626;
-    font-size: 0.85rem;
-    margin-top: 0.5rem;
-    display: block;
-  }
-
-  /* Status Box */
-  .premium-panel-status {
-    margin: 2rem 0;
-  }
-  .status-box {
-    background: #f3f4f6;
-    border-radius: 8px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #374151;
-    font-size: 0.95rem;
-  }
-
-  /* Submit Button */
-  .premium-submit-btn {
-    width: 100%;
-    padding: 16px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #fff;
-    background-color: #000;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: transform 0.1s ease, background-color 0.2s ease;
-  }
-  .premium-submit-btn:hover {
-    background-color: #222;
-  }
-  .premium-submit-btn:active {
-    transform: scale(0.98);
-  }
-  .premium-submit-btn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
-  }
+  .curtain-main-image { width: 100%; height: auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); object-fit: cover; transition: opacity 0.3s ease; }
+  .premium-title { font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 0.5rem; font-weight: 600; letter-spacing: -0.02em; }
+  .premium-price-wrapper { font-size: 1.8rem; font-weight: 500; color: #111; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid #eaeaea; }
+  .premium-field-group { margin-bottom: 1.8rem; }
+  .premium-label { display: block; font-size: 0.95rem; font-weight: 600; margin-bottom: 0.8rem; color: #333; }
+  .premium-hint { font-size: 0.8rem; color: #777; font-weight: 400; margin-left: 0.5rem; }
+  .premium-swatch-list { display: flex; flex-wrap: wrap; gap: 1rem; }
+  .premium-swatch-item { cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+  .swatch-color-circle { width: 44px; height: 44px; border-radius: 50%; border: 2px solid transparent; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.2s ease; position: relative; }
+  .js-swatch-radio:checked + .swatch-color-circle { border-color: #000; transform: scale(1.1); }
+  .js-swatch-radio:checked + .swatch-color-circle::after { content: ''; position: absolute; inset: 2px; border: 2px solid #fff; border-radius: 50%; }
+  .swatch-name { font-size: 0.85rem; color: #555; font-weight: 500; }
+  .premium-input-wrapper, .premium-select-wrapper { position: relative; }
+  .premium-input, .premium-select { width: 100%; padding: 14px 16px; font-size: 1rem; border: 1px solid #d1d5db; border-radius: 8px; background-color: #fafafa; transition: all 0.2s ease; box-sizing: border-box; }
+  .premium-input:focus, .premium-select:focus { outline: none; border-color: #000; background-color: #fff; box-shadow: 0 0 0 1px #000; }
+  .input-suffix { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #888; pointer-events: none; }
+  .premium-error { color: #dc2626; font-size: 0.85rem; margin-top: 0.5rem; display: block; }
+  .premium-panel-status { margin: 2rem 0; }
+  .status-box { background: #f3f4f6; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; color: #374151; font-size: 0.95rem; }
+  .premium-submit-btn { width: 100%; padding: 16px; font-size: 1.1rem; font-weight: 600; color: #fff; background-color: #000; border: none; border-radius: 8px; cursor: pointer; transition: transform 0.1s ease, background-color 0.2s ease; }
+  .premium-submit-btn:hover { background-color: #222; }
+  .premium-submit-btn:active { transform: scale(0.98); }
+  .premium-submit-btn:disabled { background-color: #ccc; cursor: not-allowed; }
 </style>
 
 <script>
@@ -355,9 +191,10 @@
     customElements.define('curtain-configurator', class CurtainConfigurator extends HTMLElement {
       constructor() {
         super();
-        this.currencySymbol = this.dataset.currencySymbol || '$';
+        this.currencySymbol = this.dataset.currencySymbol || 'Rs.';
+        this.baseVariantId = this.dataset.baseVariantId;
+        this.addonVariantId = this.dataset.addonVariantId;
 
-        // Bind dynamic elements via classes instead of hardcoded IDs
         this.widthInput = this.querySelector('.js-width-input');
         this.dropSelect = this.querySelector('.js-drop-select');
         this.priceDisplay = this.querySelector('.js-price-display');
@@ -404,10 +241,8 @@
 
         const width = parseFloat(this.widthInput.value);
         const dropMultiplier = parseInt(this.dropSelect.selectedOptions[0].dataset.tierMultiplier, 10) || 1;
-        const minW = parseFloat(this.widthInput.min) || 50;
-        const maxW = parseFloat(this.widthInput.max) || 360;
-
-        if (isNaN(width) || width < minW || width > maxW) {
+        
+        if (isNaN(width) || width < 50 || width > 360) {
           if (this.submitButton) this.submitButton.disabled = true;
           if (this.errorMessage) this.errorMessage.style.display = 'block';
           return;
@@ -421,13 +256,13 @@
           return;
         }
 
-        const calculatedPrice = matchedTier.base_price + (matchedTier.price_per_drop_tier * dropMultiplier);
+        this.calculatedPrice = matchedTier.base_price + (matchedTier.price_per_drop_tier * dropMultiplier);
 
         if (this.submitButton) this.submitButton.disabled = false;
         if (this.panelsDisplay) this.panelsDisplay.textContent = matchedTier.panels_required;
         if (this.hiddenPanelsInput) this.hiddenPanelsInput.value = matchedTier.panels_required;
 
-        const formattedPrice = `${this.currencySymbol}${calculatedPrice.toFixed(2)}`;
+        const formattedPrice = `${this.currencySymbol}${this.calculatedPrice.toFixed(2)}`;
         if (this.priceDisplay) this.priceDisplay.textContent = formattedPrice;
         
         const btnText = this.submitButton.querySelector('span');
@@ -441,18 +276,50 @@
 
       async handleAddToCart(event) {
         event.preventDefault();
+        
+        if (!this.addonVariantId || this.addonVariantId === "") {
+            alert("Error: Please select the 1 Rupee Dummy Product in the Theme Customizer settings!");
+            return;
+        }
+
         if (this.submitButton) {
           this.submitButton.disabled = true;
           this.submitButton.querySelector('span').textContent = 'Adding...';
         }
 
+        // 1. Gather all custom properties from the form
         const formData = new FormData(this.form);
+        const properties = {};
+        for (let [key, value] of formData.entries()) {
+            if (key.startsWith('properties[')) {
+                let propName = key.replace('properties[', '').replace(']', '');
+                properties[propName] = value;
+            }
+        }
+
+        // 2. Build the multi-item payload (Main Curtain @ Rs0 + Dummy Product @ Rs1 x CalculatedPrice)
+        const payload = {
+            items: [
+                {
+                    id: this.baseVariantId,
+                    quantity: 1,
+                    properties: properties
+                },
+                {
+                    id: this.addonVariantId,
+                    quantity: this.calculatedPrice,
+                    properties: {
+                        '_hidden_addon': 'true'
+                    }
+                }
+            ]
+        };
 
         try {
           const response = await fetch(`${routes?.cart_add_url || '/cart/add.js'}`, {
             method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify(payload)
           });
 
           if (!response.ok) throw new Error('Network error adding to cart');
@@ -470,7 +337,7 @@
           }
         } catch (error) {
           console.error(error);
-          alert('Could not add item to cart. Please verify selections.');
+          alert('Could not add item to cart.');
         } finally {
           this.recalculate();
         }
@@ -484,157 +351,36 @@
   "name": "Curtain Configurator",
   "tag": "section",
   "class": "section",
-  "settings": [],
-  "blocks": [
+  "settings": [
     {
-      "type": "title",
-      "name": "Product Title",
-      "limit": 1
+      "type": "header",
+      "content": "Backend Pricing Settings"
     },
     {
-      "type": "price",
-      "name": "Price Display",
-      "limit": 1
-    },
-    {
-      "type": "fabric_group",
-      "name": "Fabric Selector Header",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "text",
-          "id": "heading",
-          "label": "Heading",
-          "default": "Select Fabric:"
-        }
-      ]
-    },
-    {
-      "type": "fabric_swatch",
-      "name": "Fabric Swatch",
-      "settings": [
-        {
-          "type": "text",
-          "id": "fabric_name",
-          "label": "Fabric Name",
-          "default": "Linen White"
-        },
-        {
-          "type": "color",
-          "id": "fabric_color",
-          "label": "Color Code",
-          "default": "#F4F1EA"
-        },
-        {
-          "type": "image_picker",
-          "id": "swatch_image",
-          "label": "Fabric Preview Image"
-        }
-      ]
-    },
-    {
-      "type": "width_input",
-      "name": "Width Input",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "text",
-          "id": "label",
-          "label": "Label",
-          "default": "Width"
-        },
-        {
-          "type": "text",
-          "id": "hint_text",
-          "label": "Hint Text",
-          "default": "(Allowed range: 50cm to 360cm)"
-        },
-        {
-          "type": "number",
-          "id": "min_width",
-          "label": "Minimum Width",
-          "default": 50
-        },
-        {
-          "type": "number",
-          "id": "max_width",
-          "label": "Maximum Width",
-          "default": 360
-        },
-        {
-          "type": "number",
-          "id": "default_width",
-          "label": "Default Value",
-          "default": 100
-        },
-        {
-          "type": "text",
-          "id": "error_text",
-          "label": "Error Message",
-          "default": "Please enter a valid width within the allowed range."
-        }
-      ]
-    },
-    {
-      "type": "drop_input",
-      "name": "Drop Selector",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "text",
-          "id": "label",
-          "label": "Label",
-          "default": "Drop"
-        },
-        {
-          "type": "text",
-          "id": "options",
-          "label": "Options (Comma Separated)",
-          "default": "150, 200, 250",
-          "info": "Values will automatically act as Tier 1, 2, 3 multipliers in order."
-        }
-      ]
-    },
-    {
-      "type": "panel_readout",
-      "name": "Panel Status",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "text",
-          "id": "label",
-          "label": "Label text",
-          "default": "Estimated Fabric Panels:"
-        }
-      ]
-    },
-    {
-      "type": "buy_buttons",
-      "name": "Buy Button",
-      "limit": 1,
-      "settings": [
-        {
-          "type": "text",
-          "id": "button_text",
-          "label": "Button Text",
-          "default": "Add to Cart"
-        }
-      ]
+      "type": "product",
+      "id": "addon_product",
+      "label": "Select '1 Rupee' Dummy Product",
+      "info": "This product is required to pass the dynamic price to the cart. Ensure its price is exactly Rs 1.00 in the admin."
     }
+  ],
+  "blocks": [
+    { "type": "title", "name": "Product Title", "limit": 1 },
+    { "type": "price", "name": "Price Display", "limit": 1 },
+    { "type": "fabric_group", "name": "Fabric Selector Header", "limit": 1, "settings": [ { "type": "text", "id": "heading", "label": "Heading", "default": "Select Fabric:" } ] },
+    { "type": "fabric_swatch", "name": "Fabric Swatch", "settings": [ { "type": "text", "id": "fabric_name", "label": "Fabric Name", "default": "Linen White" }, { "type": "color", "id": "fabric_color", "label": "Color Code", "default": "#F4F1EA" }, { "type": "image_picker", "id": "swatch_image", "label": "Fabric Preview Image" } ] },
+    { "type": "width_input", "name": "Width Input", "limit": 1, "settings": [ { "type": "text", "id": "label", "label": "Label", "default": "Width" }, { "type": "text", "id": "hint_text", "label": "Hint Text", "default": "(Allowed range: 50cm to 360cm)" }, { "type": "number", "id": "min_width", "label": "Minimum Width", "default": 50 }, { "type": "number", "id": "max_width", "label": "Maximum Width", "default": 360 }, { "type": "number", "id": "default_width", "label": "Default Value", "default": 100 }, { "type": "text", "id": "error_text", "label": "Error Message", "default": "Please enter a valid width within the allowed range." } ] },
+    { "type": "drop_input", "name": "Drop Selector", "limit": 1, "settings": [ { "type": "text", "id": "label", "label": "Label", "default": "Drop" }, { "type": "text", "id": "options", "label": "Options (Comma Separated)", "default": "150, 200, 250" } ] },
+    { "type": "panel_readout", "name": "Panel Status", "limit": 1, "settings": [ { "type": "text", "id": "label", "label": "Label text", "default": "Estimated Fabric Panels:" } ] },
+    { "type": "buy_buttons", "name": "Buy Button", "limit": 1, "settings": [ { "type": "text", "id": "button_text", "label": "Button Text", "default": "Add to Cart" } ] }
   ],
   "presets": [
     {
       "name": "Curtain Configurator",
       "blocks": [
-        { "type": "title" },
-        { "type": "price" },
-        { "type": "fabric_group" },
+        { "type": "title" }, { "type": "price" }, { "type": "fabric_group" },
         { "type": "fabric_swatch", "settings": { "fabric_name": "Linen White", "fabric_color": "#F4F1EA" } },
         { "type": "fabric_swatch", "settings": { "fabric_name": "Charcoal Grey", "fabric_color": "#333333" } },
-        { "type": "width_input" },
-        { "type": "drop_input" },
-        { "type": "panel_readout" },
-        { "type": "buy_buttons" }
+        { "type": "width_input" }, { "type": "drop_input" }, { "type": "panel_readout" }, { "type": "buy_buttons" }
       ]
     }
   ]
