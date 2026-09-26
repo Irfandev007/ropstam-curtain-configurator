@@ -85,7 +85,7 @@
         "buy_buttons_EHnTyA"
       ],
       "custom_css": [
-        ".custom-d-none{display: none}"
+        ".custom-d-none {display: none !important;}"
       ],
       "name": "Curtain Configurator",
       "settings": {}
