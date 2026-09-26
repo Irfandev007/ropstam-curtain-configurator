@@ -86,7 +86,7 @@
       ],
       "name": "Curtain Configurator",
       "settings": {
-        "addon_product": "custom-price-add-on"
+        "addon_product": ""
       }
     },
     "main": {
