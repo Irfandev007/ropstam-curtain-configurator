@@ -152,16 +152,16 @@
           </div>
         </form>
 
-        {% comment %} JSON Matrix from Metaobjects {% endcomment %}
+       {% comment %} JSON Matrix from Metaobjects {% endcomment %}
         <script type="application/json" id="PricingMatrix-{{ section.id }}">
           [
-            {%- for tier in tiers_metafield -%}
+            {%- for tier in product.metafields.custom.curtain_pricing_tiers.value -%}
               {
-                "min_width": {{ tier.min_width.value | default: 0 }},
-                "max_width": {{ tier.max_width.value | default: 0 }},
-                "panels_required": {{ tier.panels_required.value | default: 1 }},
-                "base_price": {{ tier.base_price.value.amount | default: 0 }},
-                "price_per_drop_tier": {{ tier.price_per_drop_tier.value.amount | default: 0 }}
+                "min_width": {{ tier.min_width.value | plus: 0 }},
+                "max_width": {{ tier.max_width.value | plus: 0 }},
+                "panels_required": {{ tier.panels_required.value | plus: 0 }},
+                "base_price": {{ tier.base_price.value.amount | plus: 0 }},
+                "price_per_drop_tier": {{ tier.price_per_drop_tier.value.amount | plus: 0 }}
               }{%- unless forloop.last -%},{%- endunless -%}
             {%- endfor -%}
           ]
