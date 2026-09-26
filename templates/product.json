@@ -9,35 +9,80 @@
  */
 {
   "sections": {
-    "curtain_configurator_kxiYYh": {
+    "curtain_configurator_keUqDc": {
       "type": "curtain-configurator",
       "blocks": {
-        "fabric_swatch_VCbVxc": {
+        "title_LzhXyz": {
+          "type": "title",
+          "settings": {}
+        },
+        "price_zf4Vnc": {
+          "type": "price",
+          "settings": {}
+        },
+        "fabric_group_CT3TLK": {
+          "type": "fabric_group",
+          "settings": {
+            "heading": "Select Fabric:"
+          }
+        },
+        "fabric_swatch_7CGDaA": {
           "type": "fabric_swatch",
           "settings": {
             "fabric_name": "Linen White",
-            "fabric_color": "#f4f1ea"
+            "fabric_color": "#f4f1ea",
+            "swatch_image": "shopify://shop_images/images.jpg"
           }
         },
-        "fabric_swatch_NADBWN": {
+        "fabric_swatch_cx8aVw": {
           "type": "fabric_swatch",
           "settings": {
             "fabric_name": "Charcoal Grey",
-            "fabric_color": "#333333"
+            "fabric_color": "#333333",
+            "swatch_image": "shopify://shop_images/images_1.jpg"
           }
         },
-        "fabric_swatch_JUiRbe": {
-          "type": "fabric_swatch",
+        "width_input_9HdYPW": {
+          "type": "width_input",
           "settings": {
-            "fabric_name": "Velvet Navy",
-            "fabric_color": "#1b2a4a"
+            "label": "Width",
+            "hint_text": "(Allowed range: 50cm to 360cm)",
+            "min_width": 50,
+            "max_width": 360,
+            "default_width": 100,
+            "error_text": "Please enter a valid width within the allowed range."
+          }
+        },
+        "drop_input_WgnmtN": {
+          "type": "drop_input",
+          "settings": {
+            "label": "Drop",
+            "options": "150, 200, 250"
+          }
+        },
+        "panel_readout_qaJMxW": {
+          "type": "panel_readout",
+          "settings": {
+            "label": "Estimated Fabric Panels:"
+          }
+        },
+        "buy_buttons_EHnTyA": {
+          "type": "buy_buttons",
+          "settings": {
+            "button_text": "Add to Cart"
           }
         }
       },
       "block_order": [
-        "fabric_swatch_VCbVxc",
-        "fabric_swatch_NADBWN",
-        "fabric_swatch_JUiRbe"
+        "title_LzhXyz",
+        "price_zf4Vnc",
+        "fabric_group_CT3TLK",
+        "fabric_swatch_7CGDaA",
+        "fabric_swatch_cx8aVw",
+        "width_input_9HdYPW",
+        "drop_input_WgnmtN",
+        "panel_readout_qaJMxW",
+        "buy_buttons_EHnTyA"
       ],
       "name": "Curtain Configurator",
       "settings": {}
@@ -99,6 +144,7 @@
         "description",
         "share"
       ],
+      "disabled": true,
       "settings": {
         "enable_sticky_info": true,
         "color_scheme": "scheme-1",
@@ -117,6 +163,7 @@
     },
     "disclosures": {
       "type": "disclosures",
+      "disabled": true,
       "settings": {
         "heading": "Disclosures",
         "heading_size": "h2",
@@ -128,6 +175,7 @@
     },
     "related-products": {
       "type": "related-products",
+      "disabled": true,
       "settings": {
         "heading": "You may also like",
         "heading_size": "h2",
@@ -146,7 +194,7 @@
     }
   },
   "order": [
-    "curtain_configurator_kxiYYh",
+    "curtain_configurator_keUqDc",
     "main",
     "disclosures",
     "related-products"
