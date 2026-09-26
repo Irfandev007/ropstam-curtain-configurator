@@ -84,10 +84,11 @@
         "panel_readout_qaJMxW",
         "buy_buttons_EHnTyA"
       ],
+      "custom_css": [
+        ".custom-d-none{display: none}"
+      ],
       "name": "Curtain Configurator",
-      "settings": {
-        "addon_product": ""
-      }
+      "settings": {}
     },
     "main": {
       "type": "main-product",
