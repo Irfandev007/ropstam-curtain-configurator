@@ -85,7 +85,9 @@
         "buy_buttons_EHnTyA"
       ],
       "name": "Curtain Configurator",
-      "settings": {}
+      "settings": {
+        "addon_product": "custom-price-add-on"
+      }
     },
     "main": {
       "type": "main-product",
