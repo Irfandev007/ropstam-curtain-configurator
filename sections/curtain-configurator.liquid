@@ -1,6 +1,6 @@
 {% comment %}
   Premium Made-to-Measure Curtain Configurator
-  - Dynamic Add-on Pricing (1 Rupee Trick)
+  - Dynamic Pricing using Price-Matched Variants
 {% endcomment %}
 
 {{ 'section-main-product.css' | asset_url | stylesheet_tag }}
@@ -8,7 +8,6 @@
 {%- liquid
   assign tiers_metafield = product.metafields.custom.curtain_pricing_tiers.value
   assign default_variant = product.selected_or_first_available_variant
-  assign addon_variant = section.settings.addon_product.selected_or_first_available_variant
 -%}
 
 <div class="page-width section-{{ section.id }}-padding">
@@ -37,8 +36,6 @@
         id="CurtainConfigurator-{{ section.id }}"
         data-section-id="{{ section.id }}"
         data-currency-symbol="{{ cart.currency.symbol }}"
-        data-base-variant-id="{{ default_variant.id }}"
-        data-addon-variant-id="{{ addon_variant.id }}"
       >
         <form id="CurtainForm-{{ section.id }}" class="curtain-premium-form" novalidate>
           
@@ -53,7 +50,7 @@
               {%- when 'price' -%}
                 <div class="premium-price-wrapper" {{ block.shopify_attributes }}>
                   <span class="price-item price-item--regular js-price-display">
-                    Rs 0.00
+                    {{ default_variant.price | money }}
                   </span>
                 </div>
 
@@ -137,6 +134,7 @@
           {%- endfor -%}
         </form>
 
+        {% comment %} JSON Metaobjects & Variants Data {% endcomment %}
         <script type="application/json" id="PricingMatrix-{{ section.id }}">
           [
             {%- for tier in tiers_metafield -%}
@@ -146,6 +144,17 @@
                 "panels_required": {{ tier.panels_required | plus: 0 }},
                 "base_price": {{ tier.base_price.value | divided_by: 100.0 | plus: 0 }},
                 "price_per_drop_tier": {{ tier.price_per_drop_tier.value | divided_by: 100.0 | plus: 0 }}
+              }{%- unless forloop.last -%},{%- endunless -%}
+            {%- endfor -%}
+          ]
+        </script>
+
+        <script type="application/json" id="ProductVariants-{{ section.id }}">
+          [
+            {%- for variant in product.variants -%}
+              {
+                "id": {{ variant.id }},
+                "price": {{ variant.price | divided_by: 100.0 }}
               }{%- unless forloop.last -%},{%- endunless -%}
             {%- endfor -%}
           ]
@@ -192,8 +201,6 @@
       constructor() {
         super();
         this.currencySymbol = this.dataset.currencySymbol || 'Rs.';
-        this.baseVariantId = this.dataset.baseVariantId;
-        this.addonVariantId = this.dataset.addonVariantId;
 
         this.widthInput = this.querySelector('.js-width-input');
         this.dropSelect = this.querySelector('.js-drop-select');
@@ -205,8 +212,14 @@
         this.form = this.querySelector('form');
         this.featuredImage = document.querySelector('.curtain-main-image');
 
-        const matrixEl = this.querySelector(`[id^="PricingMatrix"]`);
+        const matrixEl = this.querySelector(`#PricingMatrix-${this.dataset.sectionId}`);
+        const variantsEl = this.querySelector(`#ProductVariants-${this.dataset.sectionId}`);
+        
         this.pricingTiers = matrixEl ? JSON.parse(matrixEl.textContent) : [];
+        this.productVariants = variantsEl ? JSON.parse(variantsEl.textContent) : [];
+
+        this.calculatedPrice = 0;
+        this.matchedVariantId = null;
 
         this.init();
       }
@@ -256,9 +269,22 @@
           return;
         }
 
+        // 1. Calculate price based on Metaobjects
         this.calculatedPrice = matchedTier.base_price + (matchedTier.price_per_drop_tier * dropMultiplier);
 
-        if (this.submitButton) this.submitButton.disabled = false;
+        // 2. Find the correct Variant ID by matching the price exactly
+        const targetVariant = this.productVariants.find(v => Math.abs(v.price - this.calculatedPrice) < 0.01);
+        
+        if (targetVariant) {
+            this.matchedVariantId = targetVariant.id;
+            if (this.submitButton) this.submitButton.disabled = false;
+        } else {
+            this.matchedVariantId = null;
+            if (this.submitButton) this.submitButton.disabled = true;
+            console.error(`Variant for price ${this.calculatedPrice} not found in admin!`);
+        }
+
+        // 3. Update UI
         if (this.panelsDisplay) this.panelsDisplay.textContent = matchedTier.panels_required;
         if (this.hiddenPanelsInput) this.hiddenPanelsInput.value = matchedTier.panels_required;
 
@@ -277,8 +303,8 @@
       async handleAddToCart(event) {
         event.preventDefault();
         
-        if (!this.addonVariantId || this.addonVariantId === "") {
-            alert("Error: Please select the 1 Rupee Dummy Product in the Theme Customizer settings!");
+        if (!this.matchedVariantId) {
+            alert("Error: Correct variant price not found. Please ensure all 9 variants exist.");
             return;
         }
 
@@ -287,7 +313,6 @@
           this.submitButton.querySelector('span').textContent = 'Adding...';
         }
 
-        // 1. Gather all custom properties from the form
         const formData = new FormData(this.form);
         const properties = {};
         for (let [key, value] of formData.entries()) {
@@ -297,22 +322,13 @@
             }
         }
 
-        // 2. Build the multi-item payload (Main Curtain @ Rs0 + Dummy Product @ Rs1 x CalculatedPrice)
+        // Send exactly 1 item (the matched variant) to the Cart
         const payload = {
-            items: [
-                {
-                    id: this.baseVariantId,
-                    quantity: 1,
-                    properties: properties
-                },
-                {
-                    id: this.addonVariantId,
-                    quantity: this.calculatedPrice,
-                    properties: {
-                        '_hidden_addon': 'true'
-                    }
-                }
-            ]
+            items: [{
+                id: this.matchedVariantId,
+                quantity: 1,
+                properties: properties
+            }]
         };
 
         try {
@@ -351,18 +367,7 @@
   "name": "Curtain Configurator",
   "tag": "section",
   "class": "section",
-  "settings": [
-    {
-      "type": "header",
-      "content": "Backend Pricing Settings"
-    },
-    {
-      "type": "product",
-      "id": "addon_product",
-      "label": "Select '1 Rupee' Dummy Product",
-      "info": "This product is required to pass the dynamic price to the cart. Ensure its price is exactly Rs 1.00 in the admin."
-    }
-  ],
+  "settings": [],
   "blocks": [
     { "type": "title", "name": "Product Title", "limit": 1 },
     { "type": "price", "name": "Price Display", "limit": 1 },
