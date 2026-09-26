@@ -34,6 +34,16 @@
     {% comment %} Right Column: Configurator & Form {% endcomment %}
     <div class="curtain-configurator__details">
       <h1 class="product__title">{{ product.title }}</h1>
+      <div style="background: #fff3cd; color: #856404; padding: 10px; margin: 10px 0; border: 1px solid #ffeeba;">
+        <strong>Debug Data:</strong><br>
+        {% for tier in tiers_metafield %}
+          Min Width: {{ tier.min_width }} <br>
+          Raw Base Price: {{ tier.base_price | json }} <br>
+          Base Price Value: {{ tier.base_price.value | json }} <br>
+          Base Price Amount: {{ tier.base_price.value.amount | json }} <br>
+          <hr>
+        {% endfor %}
+      </div>
 
       <div class="price-container" style="min-height: 2.5rem;">
         <span class="price-item price-item--regular" id="CurtainDisplayPrice-{{ section.id }}">
