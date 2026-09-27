@@ -1,8 +1,4 @@
-{% comment %}
-  Premium Made-to-Measure Curtain Configurator
-  - Dynamic Pricing using Price-Matched Variants
-  - Fully Customisable Premium Layout (Compact & Clean)
-{% endcomment %}
+
 
 {{ 'section-main-product.css' | asset_url | stylesheet_tag }}
 
@@ -15,7 +11,6 @@
   <div class="page-width section-{{ section.id }}-padding">
     <div class="premium-curtain-grid">
       
-      {% comment %} Left Media Column {% endcomment %}
       <div class="premium-curtain-media">
         <div class="media-sticky-wrapper">
           {%- if product.featured_image -%}
@@ -35,7 +30,6 @@
         </div>
       </div>
 
-      {% comment %} Right Configurator Column {% endcomment %}
       <div class="premium-curtain-content" style="
         background-color: {{ section.settings.card_bg }}; 
         border-radius: {{ section.settings.border_radius }}px;
@@ -154,7 +148,6 @@
             {%- endfor -%}
           </form>
 
-          {% comment %} JSON Metaobjects & Variants Data {% endcomment %}
           <script type="application/json" id="PricingMatrix-{{ section.id }}">
             [
               {%- for tier in tiers_metafield -%}
@@ -186,7 +179,7 @@
 </div>
 
 <style>
-  /* Premium Aesthetic & Layout Variables */
+
   .curtain-section-wrapper { padding: 3rem 0; }
   .premium-curtain-grid { display: grid; grid-template-columns: 1fr; gap: 2.5rem; align-items: start; }
   
@@ -195,10 +188,8 @@
     .media-sticky-wrapper { position: sticky; top: 4rem; }
   }
   
-  /* Left Media */
   .curtain-main-image { width: 100%; height: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.06); object-fit: cover; transition: opacity 0.3s ease; }
   
-  /* Right Content Card */
   .premium-curtain-content { 
     padding: 2rem; 
     box-shadow: 0 12px 32px rgba(0,0,0,0.04); 
@@ -209,12 +200,10 @@
   .premium-title { font-size: clamp(1.8rem, 3vw, 2.2rem); margin-top: 0; margin-bottom: 0.25rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
   .premium-price-wrapper { font-size: 1.4rem; font-weight: 500; color: #111; margin-bottom: 1.5rem; padding-bottom: 1.2rem; border-bottom: 1px solid rgba(0,0,0,0.06); }
   
-  /* Form Groups & Labels */
   .premium-field-group { margin-bottom: 1.5rem; }
   .premium-label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.6rem; color: #111; text-transform: uppercase; letter-spacing: 0.06em; }
   .premium-hint { font-size: 0.75rem; color: #777; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 0.5rem; }
   
-  /* Swatches - Compact */
   .premium-swatch-list { display: flex; flex-wrap: wrap; gap: 1rem; }
   .premium-swatch-item { cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; transition: transform 0.2s ease; }
   .premium-swatch-item:hover { transform: translateY(-2px); }
@@ -224,10 +213,8 @@
   .js-swatch-radio:checked + .swatch-color-circle::after { content: ''; position: absolute; inset: 2px; border: 2px solid #fff; border-radius: 50%; }
   .swatch-name { font-size: 0.75rem; color: #555; font-weight: 500; }
   
-  /* Inputs & Selects - Tighter padding to fix the large gaps */
   .premium-input-wrapper, .premium-select-wrapper { position: relative; }
   
-  /* FIX: Hide number spinners that overlap with "cm" */
   input[type="number"].premium-input::-webkit-inner-spin-button,
   input[type="number"].premium-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
   input[type="number"].premium-input { -moz-appearance: textfield; appearance: textfield; }
@@ -244,12 +231,10 @@
   .input-suffix { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #888; font-weight: 500; font-size: 0.9rem; pointer-events: none; }
   .premium-error { color: #dc2626; font-size: 0.8rem; margin-top: 0.5rem; display: flex; align-items: center; gap: 4px; }
   
-  /* Status Box - Compact */
   .premium-panel-status { margin: 1.5rem 0; }
   .status-box { background: rgba(0,0,0,0.02); padding: 12px 14px; display: flex; align-items: center; gap: 10px; color: #333; font-size: 0.85rem; border: 1px solid rgba(0,0,0,0.04); }
   .status-icon { width: 16px; height: 16px; color: #555; }
   
-  /* Submit Button - Elegant */
   .premium-submit-btn { 
     width: 100%; padding: 16px; font-size: 1rem; font-weight: 600; letter-spacing: 0.02em;
     color: var(--primary-btn-text); background-color: var(--primary-btn-bg); 
