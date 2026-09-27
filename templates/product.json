@@ -69,7 +69,8 @@
         "buy_buttons_EHnTyA": {
           "type": "buy_buttons",
           "settings": {
-            "button_text": "Add to Cart"
+            "button_text": "Add to Cart",
+            "loading_text": "Adding to Cart..."
           }
         }
       },
@@ -85,10 +86,19 @@
         "buy_buttons_EHnTyA"
       ],
       "custom_css": [
-        ".custom-d-none {display: none !important;}"
+        ".custom-d-none {display: none !important;}",
+        ".premium-hint {font-size: 0.75rem; color: #777; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 0.5rem; font-size: 11px;}"
       ],
       "name": "Curtain Configurator",
-      "settings": {}
+      "settings": {
+        "bg_color": "#f9f9f9",
+        "card_bg": "#ffffff",
+        "border_radius": 12,
+        "btn_bg": "#000000",
+        "btn_text": "#ffffff",
+        "err_variant": "Error: Correct variant price not found. Please ensure all 9 variants exist.",
+        "err_cart": "Could not add item to cart. Please try again."
+      }
     },
     "main": {
       "type": "main-product",
