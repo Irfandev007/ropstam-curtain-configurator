@@ -1,7 +1,7 @@
 {% comment %}
   Premium Made-to-Measure Curtain Configurator
   - Dynamic Pricing using Price-Matched Variants
-  - Fully Customisable Premium Layout (Zero Hardcoding)
+  - Fully Customisable Premium Layout (Compact & Clean)
 {% endcomment %}
 
 {{ 'section-main-product.css' | asset_url | stylesheet_tag }}
@@ -187,72 +187,78 @@
 
 <style>
   /* Premium Aesthetic & Layout Variables */
-  .curtain-section-wrapper { padding: 4rem 0; }
-  .premium-curtain-grid { display: grid; grid-template-columns: 1fr; gap: 3rem; align-items: start; }
+  .curtain-section-wrapper { padding: 3rem 0; }
+  .premium-curtain-grid { display: grid; grid-template-columns: 1fr; gap: 2.5rem; align-items: start; }
   
   @media screen and (min-width: 900px) {
-    .premium-curtain-grid { grid-template-columns: 1.05fr 0.95fr; gap: 4rem; }
+    .premium-curtain-grid { grid-template-columns: 1.1fr 0.9fr; gap: 3.5rem; }
     .media-sticky-wrapper { position: sticky; top: 4rem; }
   }
   
   /* Left Media */
-  .curtain-main-image { width: 100%; height: auto; box-shadow: 0 15px 35px rgba(0,0,0,0.08); object-fit: cover; transition: opacity 0.3s ease; }
+  .curtain-main-image { width: 100%; height: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.06); object-fit: cover; transition: opacity 0.3s ease; }
   
   /* Right Content Card */
   .premium-curtain-content { 
-    padding: 2.5rem; 
-    box-shadow: 0 20px 40px rgba(0,0,0,0.04); 
-    border: 1px solid rgba(0,0,0,0.05);
+    padding: 2rem; 
+    box-shadow: 0 12px 32px rgba(0,0,0,0.04); 
+    border: 1px solid rgba(0,0,0,0.04);
   }
-  @media screen and (max-width: 749px) { .premium-curtain-content { padding: 1.5rem; } }
+  @media screen and (max-width: 749px) { .premium-curtain-content { padding: 1.25rem; } }
 
-  .premium-title { font-size: clamp(2rem, 3.5vw, 2.6rem); margin-top: 0; margin-bottom: 0.5rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
-  .premium-price-wrapper { font-size: 1.6rem; font-weight: 500; color: #111; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.08); }
+  .premium-title { font-size: clamp(1.8rem, 3vw, 2.2rem); margin-top: 0; margin-bottom: 0.25rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; }
+  .premium-price-wrapper { font-size: 1.4rem; font-weight: 500; color: #111; margin-bottom: 1.5rem; padding-bottom: 1.2rem; border-bottom: 1px solid rgba(0,0,0,0.06); }
   
   /* Form Groups & Labels */
-  .premium-field-group { margin-bottom: 2rem; }
-  .premium-label { display: block; font-size: 0.95rem; font-weight: 600; margin-bottom: 1rem; color: #333; text-transform: uppercase; letter-spacing: 0.05em; }
-  .premium-hint { font-size: 0.8rem; color: #888; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 0.5rem; }
+  .premium-field-group { margin-bottom: 1.5rem; }
+  .premium-label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.6rem; color: #111; text-transform: uppercase; letter-spacing: 0.06em; }
+  .premium-hint { font-size: 0.75rem; color: #777; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 0.5rem; }
   
-  /* Swatches */
-  .premium-swatch-list { display: flex; flex-wrap: wrap; gap: 1.2rem; }
-  .premium-swatch-item { cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; transition: transform 0.2s ease; }
+  /* Swatches - Compact */
+  .premium-swatch-list { display: flex; flex-wrap: wrap; gap: 1rem; }
+  .premium-swatch-item { cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; transition: transform 0.2s ease; }
   .premium-swatch-item:hover { transform: translateY(-2px); }
-  .swatch-color-circle { width: 46px; height: 46px; border-radius: 50%; border: 2px solid #eaeaea; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: all 0.3s ease; position: relative; }
+  .swatch-color-circle { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.2s ease; position: relative; }
   .js-swatch-radio:focus-visible + .swatch-color-circle { outline: 2px solid #000; outline-offset: 2px; }
-  .js-swatch-radio:checked + .swatch-color-circle { border-color: #000; transform: scale(1.1); box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+  .js-swatch-radio:checked + .swatch-color-circle { border-color: #000; transform: scale(1.1); box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
   .js-swatch-radio:checked + .swatch-color-circle::after { content: ''; position: absolute; inset: 2px; border: 2px solid #fff; border-radius: 50%; }
-  .swatch-name { font-size: 0.85rem; color: #555; font-weight: 500; }
+  .swatch-name { font-size: 0.75rem; color: #555; font-weight: 500; }
   
-  /* Inputs & Selects */
+  /* Inputs & Selects - Tighter padding to fix the large gaps */
   .premium-input-wrapper, .premium-select-wrapper { position: relative; }
+  
+  /* FIX: Hide number spinners that overlap with "cm" */
+  input[type="number"].premium-input::-webkit-inner-spin-button,
+  input[type="number"].premium-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"].premium-input { -moz-appearance: textfield; appearance: textfield; }
+
   .premium-input, .premium-select { 
-    width: 100%; padding: 16px 18px; font-size: 1.05rem; 
-    border: 1px solid #d1d5db; border-radius: 8px; background-color: #fff; 
+    width: 100%; padding: 12px 14px; font-size: 0.95rem; 
+    border: 1px solid #d1d5db; border-radius: 6px; background-color: #fff; 
     transition: all 0.2s ease; box-sizing: border-box; font-family: inherit;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
   }
-  .premium-select { appearance: none; cursor: pointer; padding-right: 40px; }
-  .select-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: #666; pointer-events: none; }
+  .premium-select { appearance: none; cursor: pointer; padding-right: 36px; }
+  .select-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #666; pointer-events: none; }
   .premium-input:focus, .premium-select:focus { outline: none; border-color: #000; box-shadow: 0 0 0 1px #000; }
-  .input-suffix { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: #888; font-weight: 500; pointer-events: none; }
-  .premium-error { color: #dc2626; font-size: 0.85rem; margin-top: 0.6rem; display: block; display: flex; align-items: center; gap: 4px; }
+  .input-suffix { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #888; font-weight: 500; font-size: 0.9rem; pointer-events: none; }
+  .premium-error { color: #dc2626; font-size: 0.8rem; margin-top: 0.5rem; display: flex; align-items: center; gap: 4px; }
   
-  /* Status Box */
-  .premium-panel-status { margin: 2rem 0; }
-  .status-box { background: rgba(0,0,0,0.03); padding: 14px 18px; display: flex; align-items: center; gap: 12px; color: #333; font-size: 0.95rem; border: 1px solid rgba(0,0,0,0.05); }
-  .status-icon { width: 20px; height: 20px; color: #555; }
+  /* Status Box - Compact */
+  .premium-panel-status { margin: 1.5rem 0; }
+  .status-box { background: rgba(0,0,0,0.02); padding: 12px 14px; display: flex; align-items: center; gap: 10px; color: #333; font-size: 0.85rem; border: 1px solid rgba(0,0,0,0.04); }
+  .status-icon { width: 16px; height: 16px; color: #555; }
   
-  /* Submit Button */
+  /* Submit Button - Elegant */
   .premium-submit-btn { 
-    width: 100%; padding: 18px; font-size: 1.1rem; font-weight: 600; 
+    width: 100%; padding: 16px; font-size: 1rem; font-weight: 600; letter-spacing: 0.02em;
     color: var(--primary-btn-text); background-color: var(--primary-btn-bg); 
     border: none; cursor: pointer; 
     transition: all 0.2s ease; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    display: flex; justify-content: center; align-items: center; gap: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    display: flex; justify-content: center; align-items: center; gap: 8px;
   }
-  .premium-submit-btn:hover { filter: brightness(0.9); box-shadow: 0 6px 16px rgba(0,0,0,0.15); transform: translateY(-1px); }
+  .premium-submit-btn:hover { filter: brightness(0.9); box-shadow: 0 6px 14px rgba(0,0,0,0.12); transform: translateY(-1px); }
   .premium-submit-btn:active { transform: scale(0.98); }
   .premium-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 </style>
@@ -432,7 +438,7 @@
     { "type": "header", "content": "Design & Layout Options" },
     { "type": "color", "id": "bg_color", "label": "Section Background", "default": "#f9f9f9" },
     { "type": "color", "id": "card_bg", "label": "Card Background", "default": "#ffffff" },
-    { "type": "range", "id": "border_radius", "label": "Border Radius", "min": 0, "max": 40, "step": 4, "default": 16, "unit": "px" },
+    { "type": "range", "id": "border_radius", "label": "Border Radius", "min": 0, "max": 40, "step": 4, "default": 12, "unit": "px" },
     { "type": "color", "id": "btn_bg", "label": "Button Color", "default": "#000000" },
     { "type": "color", "id": "btn_text", "label": "Button Text Color", "default": "#ffffff" },
     { "type": "header", "content": "System Messages (Alerts)" },
