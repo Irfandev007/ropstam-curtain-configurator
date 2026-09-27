@@ -19,3 +19,5 @@ Price-Matched Variant Architecture: Because standard Shopify architecture restri
 Platform Context & Shopify Plus Capabilities: While standard Shopify plans require a client-side variant-matching approach to bypass these API limitations, native dynamic pricing and custom pricing logic without variants are offered natively exclusively on Shopify Plus via Checkout Extensibility and Shopify Functions.
 
 Modular Block-Based Architecture: Developed using dynamic Liquid blocks, enabling merchants to configure labels, inputs, and fabric swatches directly within the Shopify Theme Editor for both desktop and mobile environments.
+
+Note on Code Documentation: I have included detailed inline comments throughout the product page code to clearly map each logic section to its corresponding block element. It is my standard practice to leave comprehensive comments to streamline the review process and make it easier for future developers to navigate, maintain, or update specific areas of the codebase.
